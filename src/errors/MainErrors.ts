@@ -1,22 +1,23 @@
+import { STATUS_CODE } from '../shared/constants';
 import { AppError } from './AppError';
 
 export class NotFoundError extends AppError {
   constructor(message: string) {
-    super(message, 404);
+    super(message, STATUS_CODE.NOT_FOUND);
   }
 }
 export class BadRequestError extends AppError {
   constructor(message: string) {
-    super(message, 400);
+    super(message, STATUS_CODE.BAD_REQUEST);
   }
 }
 export class UnauthorizedError extends AppError {
   constructor(message: string = 'Invalid or expired token.') {
-    super(message, 401);
+    super(message, STATUS_CODE.UNAUTHORIZED);
   }
 }
 export class ForbiddenError extends AppError {
   constructor(message: string = 'You have no access to this resource') {
-    super(message, 403);
+    super(message, STATUS_CODE.FORBIDDEN);
   }
 }
