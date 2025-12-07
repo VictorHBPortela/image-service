@@ -25,5 +25,9 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.0.1"
   }
 }
