@@ -13,7 +13,7 @@ interface IUser {
  * we recommend creating an interface that extends Mongoose's Model interface as shown below.
  */
 interface IUserModelType extends Model<IUser> {
-  comparePassword(): boolean;
+  comparePassword(name: string): boolean;
 }
 
 export { IUser, IUserModelType };

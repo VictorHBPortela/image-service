@@ -1,5 +1,7 @@
 import { model, Schema } from 'mongoose';
 import { IUser, IUserModelType } from '../dto/IUser';
+import bcrypt from 'bcrypt';
+import { BadRequestError } from '../errors/MainErrors';
 
 const userSchema = new Schema<IUser, IUserModelType>(
   {
@@ -8,18 +10,16 @@ const userSchema = new Schema<IUser, IUserModelType>(
     password: { type: String, required: true, select: false },
   },
   {
-    statics: {
-      comparePassword(name: string) {
-        return true;
-      },
-    },
     timestamps: true,
   },
 );
 
 userSchema.pre('save', async function () {
   if (this.isModified('password')) {
-    console.log('Check if password is hashed with bcrypt');
+    const hashRounds = bcrypt.getRounds(this.password);
+    if (!hashRounds) {
+      throw new BadRequestError('Something went wrong: Unhashed password');
+    }
   }
 });
 

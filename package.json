@@ -28,6 +28,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.1"
   }
