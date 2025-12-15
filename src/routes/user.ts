@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { UserRepository } from '../repositories/UserRepository';
 import { UserController } from '../controllers/UserController';
 import { UserService } from '../services/UserService';
