@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { BadRequestError } from '../errors/MainErrors';
-import { STATUS_CODE } from '../shared/constants';
 import { IUserService } from '../services/UserService';
 import { AppError } from '../errors/AppError';
 import {
@@ -27,7 +26,7 @@ export class UserController {
       return successResponse(res, 'User registered sucessfully');
     } catch (error) {
       if (error instanceof AppError) {
-        throw new BadRequestError(error.message);
+        throw error;
       }
 
       throw new Error(
