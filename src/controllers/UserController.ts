@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import { BadRequestError } from '../errors/MainErrors';
 import { STATUS_CODE } from '../shared/constants';
 import { IUserService } from '../services/UserService';
+import { AppError } from '../errors/AppError';
+import {
+  badRequestResponse,
+  successResponse,
+  unauthorizedResponse,
+} from '../helpers/responses';
 
 export class UserController {
   constructor(private service: IUserService) {
@@ -18,10 +24,12 @@ export class UserController {
       }
 
       await this.service.register(name, email, password);
-      return res
-        .status(STATUS_CODE.CREATED)
-        .json({ status: 'success', message: 'User registered sucessfully' });
+      return successResponse(res, 'User registered sucessfully');
     } catch (error) {
+      if (error instanceof AppError) {
+        throw new BadRequestError(error.message);
+      }
+
       throw new Error(
         `Failed to register user: ${error instanceof Error ? error.message : 'Unknown Error'}`,
       );
@@ -32,19 +40,14 @@ export class UserController {
     try {
       const { email, password } = req.body;
       if (!email || !password)
-        return res.status(STATUS_CODE.BAD_REQUEST).json({
-          status: 'error',
-          message: 'Missing user credentials: email or password',
-        });
+        return badRequestResponse(
+          res,
+          'Missing user credentials: email or password',
+        );
       const loggedIn = await this.service.login(email, password);
-      if (!loggedIn)
-        return res
-          .status(STATUS_CODE.UNAUTHORIZED)
-          .json({ status: 'error', message: 'Invalid credentials' });
+      if (!loggedIn) return unauthorizedResponse(res, 'Invalid credentials');
 
-      return res
-        .status(STATUS_CODE.SUCCESS)
-        .json({ status: 'success', message: 'User logged in!' });
+      return successResponse(res, 'User logged in succesfully');
     } catch (error) {
       throw new Error(
         `Failed to login user: ${error instanceof Error ? error.message : 'Unknown Error'}`,

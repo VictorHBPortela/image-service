@@ -1,6 +1,5 @@
-import { IUser } from '../dto/IUser';
 import { IUserRepository } from '../repositories/UserRepository';
-import bcrypt from 'bcrypt';
+import { ILoginService, LoginService } from './LoginService';
 
 export interface IUserService {
   register(name: string, email: string, password: string): Promise<void>;
@@ -9,21 +8,23 @@ export interface IUserService {
 
 export class UserService implements IUserService {
   private repository: IUserRepository;
+  private loginService: ILoginService;
 
-  constructor(repository: IUserRepository) {
+  constructor(repository: IUserRepository, loginService?: ILoginService) {
     this.repository = repository;
+    this.loginService = loginService ?? new LoginService();
   }
 
   async register(name: string, email: string, password: string): Promise<void> {
-    const saltRounds = 10;
-    const hash = await bcrypt.hash(password, saltRounds);
+    const hash = await this.loginService.createHash(password);
     await this.repository.create(name, email, hash);
   }
 
   async login(email: string, password: string): Promise<boolean> {
     const user = await this.repository.findCredentials(email);
     if (user) {
-      return await bcrypt.compare(password, user.password);
+      const { password: hash } = user;
+      return await this.loginService.isPasswordHashed(password, hash);
     }
     return false;
   }

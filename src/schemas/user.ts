@@ -1,6 +1,6 @@
+import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
 import { IUser, IUserModelType } from '../dto/IUser';
-import bcrypt from 'bcrypt';
 import { BadRequestError } from '../errors/MainErrors';
 
 const userSchema = new Schema<IUser, IUserModelType>(
@@ -16,9 +16,13 @@ const userSchema = new Schema<IUser, IUserModelType>(
 
 userSchema.pre('save', async function () {
   if (this.isModified('password')) {
-    const hashRounds = bcrypt.getRounds(this.password);
-    if (!hashRounds) {
-      throw new BadRequestError('Something went wrong: Unhashed password');
+    try {
+      // checks if password is hashed before saving
+      bcrypt.getRounds(this.password);
+    } catch (error) {
+      throw new BadRequestError(
+        `Error saving user: ${error instanceof Error ? error.message : 'Unknown Error'}`,
+      );
     }
   }
 });
