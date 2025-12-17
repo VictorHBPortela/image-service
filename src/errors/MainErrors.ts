@@ -26,3 +26,8 @@ export class ConflictError extends AppError {
     super(message, STATUS_CODE.CONFLICT);
   }
 }
+export class InternalError extends AppError {
+  constructor(message: string) {
+    super(message, STATUS_CODE.INTERNAL_ERROR);
+  }
+}

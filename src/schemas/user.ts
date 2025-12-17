@@ -8,6 +8,9 @@ const userSchema = new Schema<IUser, IUserModelType>(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true }, // TODO: Create an email class with proper validation
     password: { type: String, required: true, select: false },
+    accessToken: { type: String, required: false, select: false },
+    refreshToken: { type: String, required: false, select: false },
+    expiresIn: { type: Number, required: false, select: false },
   },
   {
     timestamps: true,

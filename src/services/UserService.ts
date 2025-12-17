@@ -3,7 +3,7 @@ import { ILoginService, LoginService } from './LoginService';
 
 export interface IUserService {
   register(name: string, email: string, password: string): Promise<void>;
-  login(email: string, password: string): Promise<boolean>;
+  login(email: string, password: string): Promise<string | boolean>;
 }
 
 export class UserService implements IUserService {
@@ -20,11 +20,15 @@ export class UserService implements IUserService {
     await this.repository.create(name, email, hash);
   }
 
-  async login(email: string, password: string): Promise<boolean> {
+  async login(email: string, password: string): Promise<string | boolean> {
+    let matches = false;
     const user = await this.repository.findCredentials(email);
     if (user) {
-      const { password: hash } = user;
-      return await this.loginService.isPasswordHashed(password, hash);
+      const { name, password: hash, _id } = user;
+      matches = await this.loginService.passwordMatchesHash(password, hash);
+      if (!matches) return false;
+      const token = this.loginService.signToken(name);
+      await this.repository.update(_id, { accessToken: token });
     }
     return false;
   }

@@ -1,9 +1,13 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 interface IUser {
+  _id: string;
   name: string;
   email: string;
   password: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
   createdAt: Date;
   updatedAt: Date;
 }
