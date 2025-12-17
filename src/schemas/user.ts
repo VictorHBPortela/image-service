@@ -17,12 +17,10 @@ const userSchema = new Schema<IUser, IUserModelType>(
 userSchema.pre('save', async function () {
   if (this.isModified('password')) {
     try {
-      // checks if password is hashed before saving
+      // Check if password is already hashed
       bcrypt.getRounds(this.password);
     } catch (error) {
-      throw new BadRequestError(
-        `Error saving user: ${error instanceof Error ? error.message : 'Unknown Error'}`,
-      );
+      this.password = await bcrypt.hash(this.password, 10);
     }
   }
 });

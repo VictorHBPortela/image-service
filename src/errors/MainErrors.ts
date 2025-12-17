@@ -21,3 +21,8 @@ export class ForbiddenError extends AppError {
     super(message, STATUS_CODE.FORBIDDEN);
   }
 }
+export class ConflictError extends AppError {
+  constructor(message: string) {
+    super(message, STATUS_CODE.CONFLICT);
+  }
+}

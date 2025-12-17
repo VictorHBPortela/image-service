@@ -1,56 +1,56 @@
-import { Request, Response } from 'express';
-import { BadRequestError } from '../errors/MainErrors';
+import { NextFunction, Request, Response } from 'express';
+import { BadRequestError, UnauthorizedError } from '../errors/MainErrors';
 import { IUserService } from '../services/UserService';
-import { AppError } from '../errors/AppError';
-import {
-  badRequestResponse,
-  successResponse,
-  unauthorizedResponse,
-} from '../helpers/responses';
+import { successResponse } from '../helpers/responses';
 
 export class UserController {
   constructor(private service: IUserService) {
     this.service = service;
   }
 
-  register = async (req: Request, res: Response): Promise<Response> => {
+  register = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
     try {
       const { name, email, password } = req.body;
       if (!name || !email || !password) {
         throw new BadRequestError(
-          'Missing user credentials: name, email, password.',
+          'Please provide all required fields: name, email, and password.',
         );
       }
 
       await this.service.register(name, email, password);
-      return successResponse(res, 'User registered sucessfully');
+      return successResponse(res, 'Account created successfully!');
     } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-
-      throw new Error(
-        `Failed to register user: ${error instanceof Error ? error.message : 'Unknown Error'}`,
-      );
+      next(error);
     }
   };
 
-  login = async (req: Request, res: Response): Promise<Response> => {
+  login = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
     try {
       const { email, password } = req.body;
-      if (!email || !password)
-        return badRequestResponse(
-          res,
-          'Missing user credentials: email or password',
+      if (!email || !password) {
+        throw new BadRequestError(
+          'Please provide both email and password to log in.',
         );
-      const loggedIn = await this.service.login(email, password);
-      if (!loggedIn) return unauthorizedResponse(res, 'Invalid credentials');
+      }
 
-      return successResponse(res, 'User logged in succesfully');
+      const loggedIn = await this.service.login(email, password);
+      if (!loggedIn) {
+        throw new UnauthorizedError(
+          'Invalid email or password. Please try again.',
+        );
+      }
+
+      return successResponse(res, 'You have successfully logged in.');
     } catch (error) {
-      throw new Error(
-        `Failed to login user: ${error instanceof Error ? error.message : 'Unknown Error'}`,
-      );
+      next(error);
     }
   };
 }
