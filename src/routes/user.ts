@@ -2,6 +2,7 @@ import express from 'express';
 import { UserRepository } from '../repositories/UserRepository';
 import { UserController } from '../controllers/UserController';
 import { UserService } from '../services/UserService';
+
 const router = express.Router({ mergeParams: true });
 
 const repository = new UserRepository();

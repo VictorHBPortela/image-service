@@ -1,9 +1,11 @@
+import { IUser } from '../dto/IUser';
+import { UnauthorizedError } from '../errors/MainErrors';
 import { IUserRepository } from '../repositories/UserRepository';
 import { ILoginService, LoginService } from './LoginService';
 
 export interface IUserService {
-  register(name: string, email: string, password: string): Promise<void>;
-  login(email: string, password: string): Promise<string | boolean>;
+  register(name: string, email: string, password: string): Promise<IUser>;
+  login(email: string, password: string): Promise<IUser | null>;
 }
 
 export class UserService implements IUserService {
@@ -15,21 +17,25 @@ export class UserService implements IUserService {
     this.loginService = loginService ?? new LoginService();
   }
 
-  async register(name: string, email: string, password: string): Promise<void> {
+  async register(
+    name: string,
+    email: string,
+    password: string,
+  ): Promise<IUser> {
     const hash = await this.loginService.createHash(password);
-    await this.repository.create(name, email, hash);
+    const accessToken = this.loginService.signToken(name);
+    return await this.repository.create(name, email, hash, accessToken);
   }
 
-  async login(email: string, password: string): Promise<string | boolean> {
+  async login(email: string, password: string): Promise<IUser | null> {
     let matches = false;
     const user = await this.repository.findCredentials(email);
     if (user) {
-      const { name, password: hash, _id } = user;
+      const { password: hash } = user;
       matches = await this.loginService.passwordMatchesHash(password, hash);
-      if (!matches) return false;
-      const token = this.loginService.signToken(name);
-      await this.repository.update(_id, { accessToken: token });
+      if (!matches) throw new UnauthorizedError('Invalid password');
+      return user;
     }
-    return false;
+    return user;
   }
 }

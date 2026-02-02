@@ -1,23 +1,32 @@
-import { Types } from 'mongoose';
 import { IUser } from '../dto/IUser';
 import { ConflictError, NotFoundError } from '../errors/MainErrors';
 import { User } from '../schemas/user';
 
 export interface IUserRepository {
-  create(name: string, email: string, password: string): Promise<void>;
+  create(
+    name: string,
+    email: string,
+    password: string,
+    accessToken: string,
+  ): Promise<IUser>;
   update(id: string, data: Partial<IUser>): Promise<void>;
   findCredentials(email: string): Promise<IUser | null>;
   emailExists(email: string): Promise<boolean>;
 }
 
 export class UserRepository implements IUserRepository {
-  async create(name: string, email: string, password: string): Promise<void> {
+  async create(
+    name: string,
+    email: string,
+    password: string,
+    accessToken: string,
+  ): Promise<IUser> {
     if (await this.emailExists(email)) {
       throw new ConflictError(
         'This email is already registered. Provide a new one.',
       );
     }
-    await User.create({ name, email, password });
+    return await User.create({ name, email, password, accessToken });
   }
 
   async update(id: string, data: Partial<IUser>): Promise<void> {

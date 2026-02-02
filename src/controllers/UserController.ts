@@ -21,8 +21,8 @@ export class UserController {
         );
       }
 
-      await this.service.register(name, email, password);
-      return successResponse(res, 'Account created successfully!');
+      const user = await this.service.register(name, email, password);
+      return successResponse(res, 'Account created successfully!', user);
     } catch (error) {
       next(error);
     }
@@ -41,14 +41,14 @@ export class UserController {
         );
       }
 
-      const loggedIn = await this.service.login(email, password);
-      if (!loggedIn) {
+      const user = await this.service.login(email, password);
+      if (!user) {
         throw new UnauthorizedError(
           'Invalid email or password. Please try again.',
         );
       }
 
-      return successResponse(res, 'You have successfully logged in.');
+      return successResponse(res, 'You have successfully logged in.', user);
     } catch (error) {
       next(error);
     }
