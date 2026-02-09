@@ -56,10 +56,32 @@ function forbiddenResponse(
   return res.status(STATUS_CODE.UNAUTHORIZED).json(responseJSON);
 }
 
+function noContentResponse(
+  res: Response,
+  message: string,
+  data?: Record<string, any>,
+): Response {
+  const responseJSON = { status: 'error', message, data };
+  if (data) responseJSON.data = data;
+  return res.status(STATUS_CODE.NO_CONTENT).json(responseJSON);
+}
+
+function errorResponse(
+  res: Response,
+  message: string,
+  data?: Record<string, any>,
+): Response {
+  const responseJSON = { status: 'error', message, data };
+  if (data) responseJSON.data = data;
+  return res.status(STATUS_CODE.INTERNAL_ERROR).json(responseJSON);
+}
+
 export {
   successResponse,
   createdResponse,
   badRequestResponse,
   unauthorizedResponse,
   forbiddenResponse,
+  noContentResponse,
+  errorResponse,
 };

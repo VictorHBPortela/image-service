@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
 import { IUser, IUserModelType } from '../dto/IUser';
-import { BadRequestError } from '../errors/MainErrors';
 
 const userSchema = new Schema<IUser, IUserModelType>(
   {
