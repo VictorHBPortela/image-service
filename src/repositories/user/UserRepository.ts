@@ -1,6 +1,6 @@
-import { IUser } from '../dto/IUser';
-import { ConflictError, NotFoundError } from '../errors/MainErrors';
-import { User } from '../schemas/user';
+import { IUser } from '../../dto/IUser';
+import { ConflictError, NotFoundError } from '../../errors/MainErrors';
+import { User } from '../../schemas/user';
 
 export interface IUserRepository {
   create(

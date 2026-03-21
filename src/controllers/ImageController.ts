@@ -28,6 +28,18 @@ export class ImageController {
     }
   };
 
+  list = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const images = await this.service.list()
+        if (images.length === 0) return noContentResponse(res, 'No images found')
+        
+        return successResponse(res, 'File uploaded successfully');
+    } catch (error) {
+      console.error(`Error uploading file ${JSON.stringify(error)}`);
+      return errorResponse(res, 'Error occurred on file upload');
+    }
+  };
+
   transform = async () => {
     return null;
   };

@@ -1,6 +1,6 @@
 import { IUser } from '../dto/IUser';
 import { UnauthorizedError } from '../errors/MainErrors';
-import { IUserRepository } from '../repositories/UserRepository';
+import { IUserRepository } from '../repositories/user/UserRepository';
 import { ILoginService, LoginService } from './LoginService';
 
 export interface IUserService {

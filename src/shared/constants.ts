@@ -7,4 +7,5 @@ export const STATUS_CODE = {
   INTERNAL_ERROR: 500,
   SUCCESS: 200,
   CREATED: 201,
+  NO_CONTENT: 204,
 };
