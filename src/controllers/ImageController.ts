@@ -5,16 +5,23 @@ import {
   noContentResponse,
   successResponse,
 } from '../helpers/responses';
+import { IImageService } from '../services/ImageService';
 
 export class ImageController {
+  private service: IImageService
+
+  constructor(service: IImageService) {
+    this.service = service
+  }
+
   upload = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { file } = req;
       if (file) {
-        await awsS3Upload(file);
+        await this.service.upload(file)
         return successResponse(res, 'File uploaded successfully');
       }
-      return noContentResponse(res, 'No files provided for upload');
+      return noContentResponse(res, 'Missing file for upload')
     } catch (error) {
       console.error(`Error uploading file ${JSON.stringify(error)}`);
       return errorResponse(res, 'Error occurred on file upload');
