@@ -15,7 +15,7 @@ export async function awsS3Upload(file: Express.Multer.File): Promise<IImage | v
       region: bucketRegion,
     });
 
-    const imageId = await generateImageId(file.originalname)
+    const imageId = generateImageId()
 
     const params = {
       Bucket: bucketName,

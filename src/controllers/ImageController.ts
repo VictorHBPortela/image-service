@@ -1,7 +1,5 @@
-import { Request, Response } from 'express';
-import { awsS3Upload } from '../helpers/awsS3Upload';
+import { NextFunction, Request, Response } from 'express';
 import {
-  errorResponse,
   noContentResponse,
   successResponse,
 } from '../helpers/responses';
@@ -14,7 +12,7 @@ export class ImageController {
     this.service = service
   }
 
-  upload = async (req: Request, res: Response): Promise<Response> => {
+  upload = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const { file } = req;
       if (file) {
@@ -24,11 +22,11 @@ export class ImageController {
       return noContentResponse(res, 'Missing file for upload')
     } catch (error) {
       console.error(`Error uploading file ${JSON.stringify(error)}`);
-      return errorResponse(res, 'Error occurred on file upload');
+      next(error)
     }
   };
 
-  list = async (req: Request, res: Response): Promise<Response> => {
+  list = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
         const images = await this.service.list()
         if (images.length === 0) return noContentResponse(res, 'No images found')
@@ -36,7 +34,7 @@ export class ImageController {
         return successResponse(res, 'File uploaded successfully');
     } catch (error) {
       console.error(`Error uploading file ${JSON.stringify(error)}`);
-      return errorResponse(res, 'Error occurred on file upload');
+      next(error)
     }
   };
 

@@ -1,8 +1,10 @@
+import mongoose from 'mongoose';
+import config from '../config/config';
 import { IUser } from '../dto/IUser';
-import { BadRequestError, UnauthorizedError } from '../errors/MainErrors';
+import { BadRequestError, InternalError, UnauthorizedError } from '../errors/MainErrors';
 import { IUserRepository } from '../repositories/user/UserRepository';
 import { ILoginService, LoginService } from './LoginService';
-
+import jwt from 'jsonwebtoken';
 export interface IUserService {
   register(name: string, email: string, password: string): Promise<IUser>;
   login(email: string, password: string): Promise<IUser | null>;
@@ -23,10 +25,11 @@ export class UserService implements IUserService {
     email: string,
     password: string,
   ): Promise<IUser> {
+    const _id = new mongoose.Types.ObjectId().toString()
     const hash = await this.loginService.createHash(password);
-    const accessToken = this.loginService.signToken(name, email);
-    const refreshToken = this.loginService.signRefreshToken(name, email);
-    return await this.repository.create(name, email, hash, accessToken, refreshToken);
+    const accessToken = this.loginService.signToken(_id, name, email);
+    const refreshToken = this.loginService.signRefreshToken(_id, name, email);
+    return await this.repository.create(_id, name, email, hash, accessToken, refreshToken);
   }
 
   async login(email: string, password: string): Promise<IUser | null> {
@@ -37,21 +40,26 @@ export class UserService implements IUserService {
     matches = await this.loginService.passwordMatchesHash(password, user.password);
     if (!matches) throw new UnauthorizedError('Invalid password')
     
-    const accessToken = this.loginService.signToken(user.name, user.email)
-    const refreshToken = this.loginService.signRefreshToken(user.name, user.email)
+    const accessToken = this.loginService.signToken(user._id, user.name, user.email)
+    const refreshToken = this.loginService.signRefreshToken(user._id, user.name, user.email)
     await this.repository.update(user._id, { accessToken, refreshToken })
 
     return user;
   }
 
-  async refresh(refreshToken: string): Promise<{ accessToken: string }> {
-    if (this.loginService.isTokenExpired(refreshToken)) {
-      throw new Error("This token is expired.")
-    }
-    const user = await this.repository.findByRefreshToken(refreshToken);
-    const accessToken = this.loginService.signToken(user.name, user.email)
-    await this.repository.update(user._id, { accessToken })
-    return { accessToken }
+async refresh(refreshToken: string): Promise<{ accessToken: string }> {
+    const secret = config.refreshToken;
+    if (!secret) throw new InternalError('Missing refresh token secret');
 
-  }
+    try {
+        jwt.verify(refreshToken, secret);
+    } catch {
+        throw new UnauthorizedError('Invalid or expired refresh token');
+    }
+
+    const user = await this.repository.findByRefreshToken(refreshToken);
+    const accessToken = this.loginService.signToken(user._id, user.name, user.email);
+    await this.repository.update(user._id, { accessToken });
+    return { accessToken };
+}
 }

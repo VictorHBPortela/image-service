@@ -1,6 +1,5 @@
-import bcrypt from 'bcrypt'
+import crypto from 'crypto'
 
-export async function generateImageId(fileName: string): Promise<string> {
-    const saltRounds = 10;
-    return await bcrypt.hash(fileName, saltRounds);
+export function generateImageId(): crypto.UUID {
+    return crypto.randomUUID();
 }

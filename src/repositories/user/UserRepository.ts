@@ -4,6 +4,7 @@ import { User } from '../../schemas/user';
 
 export interface IUserRepository {
   create(
+    _id: string,
     name: string,
     email: string,
     password: string,
@@ -18,6 +19,7 @@ export interface IUserRepository {
 
 export class UserRepository implements IUserRepository {
   async create(
+    _id: string, 
     name: string,
     email: string,
     password: string,
@@ -29,7 +31,7 @@ export class UserRepository implements IUserRepository {
         'This email is already registered. Provide a new one.',
       );
     }
-    return await User.create({ name, email, password, accessToken, refreshToken });
+    return await User.create({ _id, name, email, password, accessToken, refreshToken });
   }
 
   async update(id: string, data: Partial<IUser>): Promise<void> {
