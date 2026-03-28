@@ -23,5 +23,8 @@
     "declaration": true // Generates corresponding .d.ts file
   },
   "include": ["src/**/*.ts"],
-  "exclude": []
+  "exclude": [],
+  "ts-node": {
+    "files": true
+  }
 }

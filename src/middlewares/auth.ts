@@ -1,10 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { LoginService } from "../services/LoginService";
 import { InternalError, UnauthorizedError } from "../errors/MainErrors";
 import jwt from 'jsonwebtoken'
 import config from "../config/config";
-
-const loginService = new LoginService()
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1];

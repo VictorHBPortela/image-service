@@ -45,7 +45,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByRefreshToken(refreshToken:string): Promise<IUser> {
-    const user = await User.findOne({ accessToken: refreshToken });
+    const user = await User.findOne({ refreshToken: refreshToken });
     if (!user) throw new BadRequestError("User not found with token provided")
     return user
   }

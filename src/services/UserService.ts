@@ -25,6 +25,10 @@ export class UserService implements IUserService {
     email: string,
     password: string,
   ): Promise<IUser> {
+    if (!this.loginService.isPasswordComplex(password)) {
+      throw new BadRequestError("Password must have 8 or more characters, at least 1 special character, 1 uppercase letter, 3 lowercase letters and 2 numbers")
+    }
+
     const _id = new mongoose.Types.ObjectId().toString()
     const hash = await this.loginService.createHash(password);
     const accessToken = this.loginService.signToken(_id, name, email);
@@ -38,7 +42,7 @@ export class UserService implements IUserService {
     if (!user) throw new BadRequestError('User not found, check your credentials and try again.');
     
     matches = await this.loginService.passwordMatchesHash(password, user.password);
-    if (!matches) throw new UnauthorizedError('Invalid password')
+    if (!matches) throw new UnauthorizedError('Invalid credentials')
     
     const accessToken = this.loginService.signToken(user._id, user.name, user.email)
     const refreshToken = this.loginService.signRefreshToken(user._id, user.name, user.email)
