@@ -43,9 +43,7 @@ export class UserController {
 
       const user = await this.service.login(email, password);
       if (!user) {
-        throw new UnauthorizedError(
-          'Invalid email or password. Please try again.',
-        );
+          return successResponse(res, 'User is already logged in.')
       }
 
       return successResponse(res, 'You have successfully logged in.', user);
@@ -53,4 +51,16 @@ export class UserController {
       next(error);
     }
   };
+
+ refresh = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) throw new BadRequestError('Refresh token required');
+
+        const result = await this.service.refresh(refreshToken);
+        return successResponse(res, 'Token refreshed', result);
+    } catch (error) {
+        next(error);
+    }
+  }
 }

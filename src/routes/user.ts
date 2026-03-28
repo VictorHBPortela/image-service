@@ -11,5 +11,6 @@ const controller = new UserController(service);
 
 router.post('/login', controller.login);
 router.post('/register', controller.register);
+router.post('/refresh', controller.refresh);
 
 export default router;

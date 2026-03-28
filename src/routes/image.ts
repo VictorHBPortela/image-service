@@ -3,25 +3,18 @@ import { ImageController } from '../controllers/ImageController';
 import multer from 'multer';
 import { ImageService } from '../services/ImageService';
 import { ImageRepository } from '../repositories/image/ImageRepository';
+import { auth } from '../middlewares/auth';
 
 const router = express.Router({ mergeParams: true });
 const repository = new ImageRepository()
 const service = new ImageService(repository)
 const controller = new ImageController(service);
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, '/tmp/my-uploads')
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.originalname + '-' + uniqueSuffix)
-  }
-})
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.post('/upload', upload.single('image'), controller.upload);
-router.get('/list', controller.list);
-router.post('/:id/transform', upload.single('image'), controller.transform);
+router.post('/upload', upload.single('image'), auth, controller.upload);
+router.get('/list', auth, controller.list);
+router.post('/:id/transform', upload.single('image'), auth, controller.transform);
 
 export default router;

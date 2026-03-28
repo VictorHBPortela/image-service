@@ -53,7 +53,7 @@ function forbiddenResponse(
 ): Response {
   const responseJSON = { status: 'error', message, data };
   if (data) responseJSON.data = data;
-  return res.status(STATUS_CODE.UNAUTHORIZED).json(responseJSON);
+  return res.status(STATUS_CODE.FORBIDDEN).json(responseJSON);
 }
 
 function noContentResponse(

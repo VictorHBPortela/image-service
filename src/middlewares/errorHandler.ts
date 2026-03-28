@@ -20,5 +20,6 @@ export const errorHandler = (
   return res.status(STATUS_CODE.INTERNAL_ERROR).json({
     status: 'error',
     message: 'Internal Server Error - An unexpected error has occured',
+    data: err
   });
 };
