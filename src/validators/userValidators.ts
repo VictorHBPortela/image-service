@@ -11,4 +11,4 @@ const loginValidator = z.object({
     password: z.string(),   
 })
 
-export { registerValidator, loginValidator}
+export { registerValidator, loginValidator }

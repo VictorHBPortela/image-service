@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { BadRequestError, UnauthorizedError } from '../errors/MainErrors';
+import { BadRequestError } from '../errors/MainErrors';
 import { IUserService } from '../services/UserService';
 import { successResponse } from '../helpers/responses';
 
