@@ -7,7 +7,7 @@ import { ILoginService, LoginService } from './LoginService';
 import jwt from 'jsonwebtoken';
 export interface IUserService {
   register(name: string, email: string, password: string): Promise<IUser>;
-  login(email: string, password: string): Promise<IUser | null>;
+  login(email: string, password: string): Promise<Partial<IUser> | null>;
   refresh(refreshToken: string): Promise<{ accessToken: string }>;
 }
 
@@ -31,12 +31,11 @@ export class UserService implements IUserService {
 
     const _id = new mongoose.Types.ObjectId().toString()
     const hash = await this.loginService.createHash(password);
-    const accessToken = this.loginService.signToken(_id, name, email);
     const refreshToken = this.loginService.signRefreshToken(_id, name, email);
-    return await this.repository.create(_id, name, email, hash, accessToken, refreshToken);
+    return await this.repository.create(_id, name, email, hash, refreshToken);
   }
 
-  async login(email: string, password: string): Promise<IUser | null> {
+  async login(email: string, password: string): Promise<Partial<IUser> | null> {
     let matches = false;
     const user = await this.repository.findCredentials(email);
     if (!user) throw new BadRequestError('User not found, check your credentials and try again.');
@@ -46,9 +45,9 @@ export class UserService implements IUserService {
     
     const accessToken = this.loginService.signToken(user._id, user.name, user.email)
     const refreshToken = this.loginService.signRefreshToken(user._id, user.name, user.email)
-    await this.repository.update(user._id, { accessToken, refreshToken })
+    await this.repository.update(user._id, { refreshToken })
 
-    return user;
+    return { name: user.name, email: user.email, password: user.password, accessToken, refreshToken };
   }
 
 async refresh(refreshToken: string): Promise<{ accessToken: string }> {
@@ -63,7 +62,7 @@ async refresh(refreshToken: string): Promise<{ accessToken: string }> {
 
     const user = await this.repository.findByRefreshToken(refreshToken);
     const accessToken = this.loginService.signToken(user._id, user.name, user.email);
-    await this.repository.update(user._id, { accessToken });
+    await this.repository.update(user._id, { refreshToken });
     return { accessToken };
 }
 }

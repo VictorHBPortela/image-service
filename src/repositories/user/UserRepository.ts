@@ -8,7 +8,6 @@ export interface IUserRepository {
     name: string,
     email: string,
     password: string,
-    accessToken: string,
     refreshToken: string,
   ): Promise<IUser>;
   update(id: string, data: Partial<IUser>): Promise<void>;
@@ -23,7 +22,6 @@ export class UserRepository implements IUserRepository {
     name: string,
     email: string,
     password: string,
-    accessToken: string,
     refreshToken: string,
   ): Promise<IUser> {
     if (await this.emailExists(email)) {
@@ -31,7 +29,7 @@ export class UserRepository implements IUserRepository {
         'This email is already registered. Provide a new one.',
       );
     }
-    return await User.create({ _id, name, email, password, accessToken, refreshToken });
+    return await User.create({ _id, name, email, password, refreshToken });
   }
 
   async update(id: string, data: Partial<IUser>): Promise<void> {
@@ -45,7 +43,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByRefreshToken(refreshToken:string): Promise<IUser> {
-    const user = await User.findOne({ refreshToken: refreshToken });
+    const user = await User.findOne({ refreshToken });
     if (!user) throw new BadRequestError("User not found with token provided")
     return user
   }
