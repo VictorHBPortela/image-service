@@ -50,19 +50,19 @@ export class UserService implements IUserService {
     return { name: user.name, email: user.email, password: user.password, accessToken, refreshToken };
   }
 
-async refresh(refreshToken: string): Promise<{ accessToken: string }> {
-    const secret = config.refreshToken;
-    if (!secret) throw new InternalError('Missing refresh token secret');
+  async refresh(refreshToken: string): Promise<{ accessToken: string }> {
+      const secret = config.refreshToken;
+      if (!secret) throw new InternalError('Missing refresh token secret');
 
-    try {
-        jwt.verify(refreshToken, secret);
-    } catch {
-        throw new UnauthorizedError('Invalid or expired refresh token');
-    }
+      try {
+          jwt.verify(refreshToken, secret);
+      } catch {
+          throw new UnauthorizedError('Invalid or expired refresh token');
+      }
 
-    const user = await this.repository.findByRefreshToken(refreshToken);
-    const accessToken = this.loginService.signToken(user._id, user.name, user.email);
-    await this.repository.update(user._id, { refreshToken });
-    return { accessToken };
-}
+      const user = await this.repository.findByRefreshToken(refreshToken);
+      const accessToken = this.loginService.signToken(user._id, user.name, user.email);
+      await this.repository.update(user._id, { refreshToken });
+      return { accessToken };
+  }
 }

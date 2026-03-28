@@ -15,11 +15,6 @@ export class UserController {
   ): Promise<Response | void> => {
     try {
       const { name, email, password } = req.body;
-      if (!name || !email || !password) {
-        throw new BadRequestError(
-          'Please provide all required fields: name, email, and password.',
-        );
-      }
 
       const user = await this.service.register(name, email, password);
       return successResponse(res, 'Account created successfully!', user);
@@ -35,12 +30,7 @@ export class UserController {
   ): Promise<Response | void> => {
     try {
       const { email, password } = req.body;
-      if (!email || !password) {
-        throw new BadRequestError(
-          'Please provide both email and password to log in.',
-        );
-      }
-
+    
       const user = await this.service.login(email, password);
       if (!user) {
           return successResponse(res, 'User is already logged in.')
