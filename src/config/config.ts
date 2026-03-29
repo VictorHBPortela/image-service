@@ -12,6 +12,7 @@ interface Config {
   bucketRegion: string;
   accessKeyId: string | undefined;
   secretAccessKey: string | undefined;
+  requestLimit: number;
 }
 
 const config: Config = {
@@ -24,6 +25,7 @@ const config: Config = {
   bucketRegion: process.env.BUCKET_REGION || 'us-east-2',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  requestLimit: Number(process.env.REQUEST_LIMIT),
 };
 
 export default config;
