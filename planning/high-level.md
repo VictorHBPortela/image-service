@@ -2,7 +2,12 @@
 
 ## Visão Geral do Estado Atual
 
-O projeto possui uma fundação funcional estabelecida: a infraestrutura do servidor, a conexão com banco de dados, o tratamento de erros e o fluxo básico de autenticação de usuários estão implementados. O upload de imagens para o S3 também está operacional. No entanto, há lacunas importantes que bloqueiam o avanço de funcionalidades centrais do serviço.
+O projeto possui uma base sólida com segurança implementada: a infraestrutura do
+servidor, a conexão com banco de dados, o tratamento de erros, o fluxo completo
+de autenticação JWT, validação de inputs com Zod e proteção de rotas estão todos
+operacionais. O upload de imagens para o S3 também funciona corretamente. A
+próxima etapa é o gerenciamento completo do ciclo de vida das imagens e as
+transformações.
 
 ---
 
@@ -15,12 +20,12 @@ O projeto possui uma fundação funcional estabelecida: a infraestrutura do serv
 [ Upload para S3 ]              ✅ PRONTO
 [ Tratamento de Erros ]         ✅ PRONTO
 
-[ Proteção de Rotas (JWT) ]     ❌ NÃO INICIADO  ← BLOQUEANTE
+[ Proteção de Rotas (JWT) ]     ✅ PRONTO
+[ Validação de Inputs ]         ✅ PRONTO (Zod + fileFilter)
+[ Rate Limiting ]               ✅ PRONTO (global · ⚠️ não específico ao /transform)
 [ Transformações de Imagem ]    ❌ NÃO INICIADO
 [ Recuperação de Imagem ]       ❌ NÃO INICIADO
-[ Validação de Inputs ]         ⚠️  PARCIAL
-[ Listagem de Imagens ]         ⚠️  PARCIAL (resposta quebrada)
-[ Rate Limiting ]               ❌ NÃO INICIADO
+[ Listagem de Imagens ]         ⚠️  PARCIAL (resposta quebrada · userId não escopado)
 [ Cache de Imagens ]            ❌ NÃO INICIADO
 [ Processamento Assíncrono ]    ❌ NÃO INICIADO (opcional · Kafka)
 ```
@@ -31,7 +36,9 @@ O projeto possui uma fundação funcional estabelecida: a infraestrutura do serv
 
 ### Fase 1 — Fundação ✅ CONCLUÍDA
 
-Cobre toda a base estrutural do projeto: configuração do servidor, integração com banco de dados, sistema de tratamento de erros, registro e login de usuários, e upload de imagens para o S3.
+Cobre toda a base estrutural do projeto: configuração do servidor, integração
+com banco de dados, sistema de tratamento de erros, registro e login de
+usuários, e upload de imagens para o S3.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -43,31 +50,39 @@ Cobre toda a base estrutural do projeto: configuração do servidor, integraçã
 
 ---
 
-### Fase 2 — Segurança e Validação 🔴 BLOQUEANTE
+### Fase 2 — Segurança e Validação ✅ CONCLUÍDA
 
-Esta fase é **pré-requisito** para as fases 3 e 4. Sem proteção de rotas via JWT e sem validação de entradas, não faz sentido construir funcionalidades que dependem de autenticação. É o gargalo atual do projeto.
+Todos os bugs críticos foram corrigidos e as features de segurança estão
+implementadas. O bloqueio foi removido — as Fases 3 e 4 podem avançar.
+
+> **Pendência menor (não bloqueante):** FEAT-005 não tem limite de tamanho de
+> arquivo configurado no multer (apenas o `fileFilter` de tipo está ativo).
+> FEAT-026 tem rate limiting global; o escopo específico ao `/transform` por
+> `userId` pode ser refinado na Fase 3.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  FASE 2 — Segurança e Validação         🔴 BLOQUEANTE   │
+│  FASE 2 — Segurança e Validação           ✅ CONCLUÍDA  │
 │                                                         │
 │  ┌─────────────────────┐  ┌──────────────────────────┐  │
 │  │ Proteção de Rotas   │  │  Validação de Inputs     │  │
-│  │  (JWT Middleware)   │  │  (dados + tipo/tamanho   │  │
-│  │                     │  │   de arquivo)            │  │
+│  │  (JWT Middleware) ✅│  │  (Zod + fileFilter)   ✅ │  │
 │  └─────────────────────┘  └──────────────────────────┘  │
 │  ┌─────────────────────────────────────────────────┐    │
-│  │  Rate Limiting (rotas de transformação)         │    │
+│  │  Rate Limiting (global) ✅  ⚠️ /transform TODO  │    │
 │  └─────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────┘
-               ↓ desbloqueia Fase 3 e Fase 4
+                    ✅ Fase 3 e Fase 4 desbloqueadas
 ```
 
 ---
 
-### Fase 3 — Gerenciamento de Imagens ⚙️ PARALELA COM FASE 4
+### Fase 3 — Gerenciamento de Imagens 🔴 EM ANDAMENTO
 
-Com a segurança no lugar, esta fase completa o ciclo de vida básico de uma imagem: vínculo com o usuário dono, resposta correta no upload, recuperação e exclusão de imagens. **Pode ser desenvolvida em paralelo com a Fase 4**.
+A Fase 2 desbloqueou esta fase. O foco agora é completar o ciclo de vida das
+imagens: vínculo com o usuário dono (`userId`), correção das respostas de upload
+e listagem, recuperação e exclusão. **Pode ser desenvolvida em paralelo com a
+Fase 4**.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -90,7 +105,13 @@ Com a segurança no lugar, esta fase completa o ciclo de vida básico de uma ima
 
 ### Fase 4 — Transformações de Imagem ⚙️ PARALELA COM FASE 3
 
-É a funcionalidade central e diferenciadora do produto. Pode ser desenvolvida em paralelo com a Fase 3, pois são domínios independentes. Internamente, as transformações simples (resize, rotate) podem ser entregues antes das mais complexas (watermark, filtros). Esta fase também contempla **cache de resultados** para evitar reprocessamento e, opcionalmente, **processamento assíncrono via Kafka** para desacoplar a execução das transformações do ciclo request-response.
+É a funcionalidade central e diferenciadora do produto. Pode ser desenvolvida em
+paralelo com a Fase 3, pois são domínios independentes. Internamente, as
+transformações simples (resize, rotate) podem ser entregues antes das mais
+complexas (watermark, filtros). Esta fase também contempla **cache de
+resultados** para evitar reprocessamento e, opcionalmente, **processamento
+assíncrono via Kafka** para desacoplar a execução das transformações do ciclo
+request-response.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -117,7 +138,9 @@ Com a segurança no lugar, esta fase completa o ciclo de vida básico de uma ima
 
 ### Fase 5 — Qualidade e Produção 🏁 FASE FINAL
 
-Não é bloqueante para o desenvolvimento, mas é **obrigatória antes de qualquer entrega final**. Pode ser iniciada gradualmente desde a Fase 3/4 (ex: testes à medida que as features são criadas).
+Não é bloqueante para o desenvolvimento, mas é **obrigatória antes de qualquer
+entrega final**. Pode ser iniciada gradualmente desde a Fase 3/4 (ex: testes à
+medida que as features são criadas).
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -132,19 +155,19 @@ Não é bloqueante para o desenvolvimento, mas é **obrigatória antes de qualqu
 ## Fluxo de Dependências entre Fases
 
 ```
-Fase 1 (DONE)
+Fase 1 (DONE) ✅
     │
     ▼
-Fase 2 ── BLOQUEANTE ──┬──────────────────┐
-                       │                  │
-                       ▼                  ▼
-                    Fase 3             Fase 4
-                (Gerenciamento)    (Transformações)
-                       │                  │
-                       └────────┬─────────┘
-                                ▼
-                             Fase 5
-                          (Produção)
+Fase 2 (DONE) ✅ ──────────────┬──────────────────┐
+                               │                  │
+                               ▼                  ▼
+                    Fase 3 (EM ANDAMENTO)    Fase 4 (NÃO INICIADA)
+                     (Gerenciamento)         (Transformações)
+                               │                  │
+                               └────────┬─────────┘
+                                        ▼
+                                     Fase 5
+                                  (Produção)
 ```
 
 ---
@@ -153,8 +176,9 @@ Fase 2 ── BLOQUEANTE ──┬───────────────�
 
 | Prioridade | Fase                             | Estado       | Impacto                   |
 | ---------- | -------------------------------- | ------------ | ------------------------- |
-| 🔴 Crítica | Fase 2 — Segurança               | Não iniciada | Desbloqueante             |
-| 🟡 Alta    | Fase 3 — Gerenciamento           | Não iniciada | Core do produto           |
+| ✅ Feito   | Fase 1 — Fundação                | Concluída    | Base do serviço           |
+| ✅ Feito   | Fase 2 — Segurança               | Concluída    | Desbloqueante             |
+| 🔴 Crítica | Fase 3 — Gerenciamento           | Em andamento | Core do produto           |
 | 🟡 Alta    | Fase 4 — Transformações          | Não iniciada | Diferencial do produto    |
 | 🟡 Alta    | Fase 4 — Cache (Redis)           | Não iniciada | Performance e custo de S3 |
 | 🟢 Normal  | Fase 4 — Fila assíncrona (Kafka) | Não iniciada | Escalabilidade (opcional) |
@@ -162,4 +186,5 @@ Fase 2 ── BLOQUEANTE ──┬───────────────�
 
 ---
 
-> **Nota:** A Fase 2 é o único ponto verdadeiramente bloqueante no momento. As Fases 3 e 4 podem correr em paralelo assim que a fundação de segurança estiver no lugar, o que permite dividir o trabalho entre dois contextos independentes.
+> **Nota:** A Fase 2 está concluída. As Fases 3 e 4 podem correr em paralelo —
+> dois contextos independentes de desenvolvimento.
