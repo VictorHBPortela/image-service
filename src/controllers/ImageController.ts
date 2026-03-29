@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import {
+  badRequestResponse,
   noContentResponse,
   successResponse,
 } from '../helpers/responses';
 import { IImageService } from '../services/ImageService';
+import { BadRequestError } from '../errors/MainErrors';
 
 export class ImageController {
   private service: IImageService
@@ -14,12 +16,12 @@ export class ImageController {
 
   upload = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const { file } = req;
-      if (file) {
-        await this.service.upload(file)
-        return successResponse(res, 'File uploaded successfully');
-      }
-      return noContentResponse(res, 'Missing file for upload')
+      const { file, user } = req;
+      if (!file) return noContentResponse(res, 'Missing file for upload') 
+
+      const image = await this.service.upload(file, user!.id)
+      return successResponse(res, 'File uploaded successfully', { image });
+      
     } catch (error) {
       console.error(`Error uploading file ${JSON.stringify(error)}`);
       next(error)
@@ -28,10 +30,27 @@ export class ImageController {
 
   list = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-        const images = await this.service.list()
+        const userId = req.user!.id;
+        const images = await this.service.list(userId)
         if (images.length === 0) return noContentResponse(res, 'No images found')
         
-        return successResponse(res, 'File uploaded successfully');
+        return successResponse(res, 'List of images', images);
+    } catch (error) {
+      console.error(`Error uploading file ${JSON.stringify(error)}`);
+      next(error)
+    }
+  };
+
+  delete = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+        const userId = req.user!.id;
+        const imageId = req.params.id
+        if (!imageId) return badRequestResponse(res, 'Missing image ID')
+          
+        const image = await this.service.delete(imageId, userId)
+        if (!image) return noContentResponse(res, 'No image found with given ID')
+        
+        return successResponse(res, 'Image deleted successfully', image);
     } catch (error) {
       console.error(`Error uploading file ${JSON.stringify(error)}`);
       next(error)

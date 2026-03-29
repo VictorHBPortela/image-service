@@ -6,6 +6,7 @@ const imageSchema = new Schema<IImage>(
     originalName: { type: String, required: true },
     imageId: { type: String, required: false, unique: true },
     imageUrl: { type: String, required: true, unique: true },
+    userId: { type: String, required: true },
   },
   {
     timestamps: true,

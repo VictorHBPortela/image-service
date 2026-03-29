@@ -2,18 +2,23 @@ import { IImage } from "../../dto/IImage";
 import { Image } from "../../schemas/image";
 
 export interface IImageRepository {
-    save(image: IImage): Promise<void>
-    list(): Promise<IImage[]>
+    save(image: IImage, userId: string): Promise<void>
+    list(userId: string): Promise<IImage[]>
+    delete(imageId: string, userId: string): Promise<IImage | null>
 }
 
 export class ImageRepository {
     constructor() {}
 
-    async save(image: IImage) {
-        await Image.create({ ...image })
+    async save(image: IImage, userId: string): Promise<void> {
+        await Image.create({ ...image, userId })
     }
 
-    async list(): Promise<IImage[]> {
-        return await Image.find()
+    async list(userId: string): Promise<IImage[]> {
+        return await Image.find({ userId })
+    }
+
+    async delete(imageId: string, userId: string): Promise<IImage | null> {
+        return await Image.findOneAndDelete({ imageId, userId })
     }
 }

@@ -3,7 +3,7 @@ import { BadRequestError } from '../errors/MainErrors';
 import { Request, Response, NextFunction } from 'express';
 import { fileFilter } from './fileFilter';
 
-const upload = multer({ storage: multer.memoryStorage(), fileFilter });
+const upload = multer({ storage: multer.memoryStorage(), fileFilter, limits: { fileSize: 10 * 1024 * 1024 } });
 
 export function multerUpload(req: Request, res: Response, next: NextFunction) {
   upload.single('image')(req, res, (err: any) => {
