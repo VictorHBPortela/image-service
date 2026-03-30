@@ -327,54 +327,53 @@ interface tipada `ITransformOptions` cobrindo todos os parâmetros de
 transformação: `resize?: { width, height, fit }`,
 `crop?: { left, top, width, height }`, `rotate?: number`, `flip?: boolean`,
 `mirror?: boolean`, `compress?: { quality }`,
-`format?: 'jpeg' | 'png' | 'webp'`, `filters?: { grayscale?, sepia? }`,
-`watermark?: { text, position }`. **Story Points:** 3 SP
+`format?: 'jpeg' | 'png' | 'webp'`, `filters?: { grayscale?, sepia? }`. **Story
+Points:** 3 SP
 
 ---
 
-#### ✨ FEAT-014 — Criar validação Zod para `ITransformOptions`
+#### ✨ FEAT-014 — Criar validação Zod para `ITransformOptions` ✅
 
 **Arquivo a criar:** `src/validators/transformValidators.ts` **Descrição:**
 Criar schema Zod correspondente ao `ITransformOptions`, com validações de range
 (ex: quality entre 1–100, rotate entre 0–360). Será usado no controller para
-validar o body da requisição. **Depende de:** FEAT-013 **Story Points:** 3 SP
+validar o body da requisição. **Depende de:** FEAT-013 **Status:** ✅
+Implementado — `transformValidator` cobre todos os campos com ranges em
+`quality` (1–100) e `rotate` (0–360). **Story Points:** 3 SP
 
 ---
 
-#### ✨ FEAT-015 — Implementar `TransformService` — operações geométricas
+#### ✨ FEAT-015 — Implementar `TransformService` — operações geométricas ✅
 
 **Arquivo a criar:** `src/services/TransformService.ts` **Descrição:**
 Implementar as transformações: `resize`, `crop`, `rotate`, `flip`, `mirror`
 usando a API encadeável do `sharp`. O service deve receber `buffer: Buffer` e
 `options: ITransformOptions` e retornar o `Buffer` transformado. **Depende de:**
-FEAT-012, FEAT-013 **Story Points:** 8 SP
+FEAT-012, FEAT-013 **Status:** ✅ Implementado — `TransformService.transform()`
+aplica resize, crop, rotate, flip e mirror via pipeline `sharp`. **Story
+Points:** 8 SP
 
 ---
 
-#### ✨ FEAT-016 — Implementar `TransformService` — compressão e conversão de formato
+#### ✨ FEAT-016 — Implementar `TransformService` — compressão e conversão de formato ✅
 
 **Arquivo:** `src/services/TransformService.ts` **Descrição:** Adicionar ao
 `TransformService` o suporte a `compress` (ajustar qualidade) e `format`
 (converter para jpeg, png, webp). Atenção ao comportamento do `sharp` com
 formatos que não suportam certas configurações (ex: png ignora `quality`).
-**Depende de:** FEAT-015 **Story Points:** 5 SP
+**Depende de:** FEAT-015 **Status:** ✅ Implementado — pipeline aplica
+`.jpeg()`, `.webp()` ou `.png()` conforme `format`; `compress.quality` é
+ignorado silenciosamente pelo png. **Story Points:** 5 SP
 
 ---
 
-#### ✨ FEAT-017 — Implementar `TransformService` — filtros visuais
+#### ✨ FEAT-017 — Implementar `TransformService` — filtros visuais ✅
 
 **Arquivo:** `src/services/TransformService.ts` **Descrição:** Adicionar filtros
 `grayscale` (via `sharp().grayscale()`) e `sepia` (via composição de matrix de
-cores com `sharp().recomb()`). **Depende de:** FEAT-015 **Story Points:** 3 SP
-
----
-
-#### ✨ FEAT-018 — Implementar `TransformService` — watermark
-
-**Arquivo:** `src/services/TransformService.ts` **Descrição:** Adicionar
-watermark de texto usando `sharp().composite()`. Utilizar `sharp` com um buffer
-SVG gerado dinamicamente como overlay. Suportar posições (`top-left`, `center`,
-`bottom-right`, etc). **Depende de:** FEAT-015 **Story Points:** 5 SP
+cores com `sharp().recomb()`). **Depende de:** FEAT-015 **Status:** ✅
+Implementado — `grayscale` via `.grayscale()`, `sepia` via `.recomb()` com
+matrix de luminância padrão (`Matrix3x3`). **Story Points:** 3 SP
 
 ---
 
