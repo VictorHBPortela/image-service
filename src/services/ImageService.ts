@@ -1,39 +1,56 @@
-import { IImage } from "../dto/IImage"
-import { BadRequestError } from "../errors/MainErrors"
-import { awsS3Delete } from "../helpers/awsS3Delete"
-import { awsS3Upload } from "../helpers/awsS3Upload"
-import { IImageRepository } from "../repositories/image/ImageRepository"
+import { IImage } from '../dto/IImage';
+import { awsS3Delete, awsS3GetObject, awsS3Upload } from '../helpers/awsS3';
+import { IImageRepository } from '../repositories/image/ImageRepository';
+import { NotFoundError } from '../errors/MainErrors';
 
-export interface IImageService {
-    upload(file: Express.Multer.File, userId: string): Promise<IImage | void>
-    list(userId: string): Promise<IImage[]>
-    delete(imageId: string, userId: string): Promise<IImage | null>
+export interface RetrievedImage {
+  buffer: Buffer;
+  contentType: string;
+}
+
+export interface IImageReader {
+  getImage(imageId: string): Promise<RetrievedImage>;
+}
+
+export interface IImageService extends IImageReader {
+  upload(file: Express.Multer.File, userId: string): Promise<IImage | void>;
+  list(userId: string): Promise<IImage[]>;
+  delete(imageId: string, userId: string): Promise<IImage | null>;
 }
 
 export class ImageService implements IImageService {
-    private repository: IImageRepository
+  private repository: IImageRepository;
 
-    constructor(repository: IImageRepository) {
-        this.repository = repository;
-    }
-    
-    async upload(file: Express.Multer.File, userId: string): Promise<IImage | void> {
-        if (!file) throw new BadRequestError('Missing file for upload')
+  constructor(repository: IImageRepository) {
+    this.repository = repository;
+  }
 
-        const image = await awsS3Upload(file)
-        
-        if (image) await this.repository.save(image, userId)
-        
-        return image
-    }
+  async getImage(imageId: string): Promise<RetrievedImage> {
+    const object = await awsS3GetObject(imageId);
+    if (!object.Body) throw new NotFoundError('Image content not found');
 
-    async list(userId: string): Promise<IImage[]> {
-        return await this.repository.list(userId)
-    }
+    const bytes = await object.Body.transformToByteArray();
+    return {
+      buffer: Buffer.from(bytes),
+      contentType: object.ContentType ?? 'application/octet-stream',
+    };
+  }
 
-    async delete(imageId: string, userId: string): Promise<IImage | null> {
-        await awsS3Delete(imageId);
-        return await this.repository.delete(imageId, userId);
-        
-    }
+  async upload(
+    file: Express.Multer.File,
+    userId: string,
+  ): Promise<IImage | void> {
+    const image = await awsS3Upload(file);
+    if (image) await this.repository.save(image, userId);
+    return image;
+  }
+
+  async list(userId: string): Promise<IImage[]> {
+    return await this.repository.list(userId);
+  }
+
+  async delete(imageId: string, userId: string): Promise<IImage | null> {
+    await awsS3Delete(imageId);
+    return await this.repository.delete(imageId, userId);
+  }
 }
