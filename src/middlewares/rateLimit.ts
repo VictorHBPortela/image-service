@@ -1,4 +1,4 @@
-import { rateLimit } from 'express-rate-limit';
+import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
 import config from '../config/config';
 
 export const limiter = rateLimit({
@@ -13,5 +13,5 @@ export const transformLimiter = rateLimit({
   limit: config.requestLimit,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id ?? req.ip ?? 'anonymous',
+  keyGenerator: (req) => req.user?.id ?? 'anonymous',
 });

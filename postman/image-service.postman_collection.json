@@ -1,0 +1,310 @@
+{
+  "info": {
+    "_postman_id": "2e270dcf-1f16-4c30-bff6-e35dcf747649",
+    "name": "Image Service API",
+    "description": "Collection for the Image Service API. Run Register and Login first, then Upload Image. Login stores the access and refresh tokens, while Upload Image stores the image ID used by the transform and delete requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "imageId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman User\",\n  \"email\": \"postman@example.com\",\n  \"password\": \"Image123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "register"
+              ]
+            },
+            "description": "Creates a user. The example password satisfies the current complexity policy."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "const data = response.data ?? {};",
+                  "",
+                  "if (data.accessToken) pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "if (data.refreshToken) pm.collectionVariables.set('refreshToken', data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"postman@example.com\",\n  \"password\": \"Image123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            },
+            "description": "Authenticates the user and stores accessToken and refreshToken as collection variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "const accessToken = response.data?.accessToken;",
+                  "",
+                  "if (accessToken) pm.collectionVariables.set('accessToken', accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "refresh"
+              ]
+            },
+            "description": "Uses the saved refresh token and replaces the collection accessToken."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "item": [
+        {
+          "name": "Upload Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "const imageId = response.data?.image?.imageId;",
+                  "",
+                  "if (imageId) pm.collectionVariables.set('imageId', imageId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select a JPEG, PNG or WebP image before sending the request."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/image/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "image",
+                "upload"
+              ]
+            },
+            "description": "Uploads an image to S3 and stores its imageId as a collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "List Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/image/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "image",
+                "list"
+              ]
+            },
+            "description": "Lists images belonging to the authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Transform Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "image/webp"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resize\": {\n    \"width\": 800,\n    \"height\": 600,\n    \"fit\": \"contain\"\n  },\n  \"rotate\": 0,\n  \"flip\": false,\n  \"mirror\": false,\n  \"compress\": {\n    \"quality\": 80\n  },\n  \"format\": \"webp\",\n  \"filters\": {\n    \"grayscale\": false,\n    \"sepia\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/image/transform/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "image",
+                "transform",
+                "{{imageId}}"
+              ]
+            },
+            "description": "Retrieves the original image from S3 and returns the transformed binary image. Use Send and Download in Postman to save the response."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Image",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/image/delete/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "image",
+                "delete",
+                "{{imageId}}"
+              ]
+            },
+            "description": "Deletes the image identified by imageId. This request uses GET because that is the method currently defined by the API."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
