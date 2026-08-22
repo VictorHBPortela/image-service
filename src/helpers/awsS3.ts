@@ -9,17 +9,19 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { generateImageId } from './generateImageId';
 import { IImage } from '../dto/IImage';
 import { s3Client } from '../config/S3Client';
+import { resolveImageContentType } from './fileFilter';
 
 const { s3, bucketName } = s3Client();
 
 async function awsS3Upload(file: Express.Multer.File): Promise<IImage | void> {
   const imageId = generateImageId();
+  const contentType = resolveImageContentType(file) ?? file.mimetype;
 
   const params = {
     Bucket: bucketName,
     Key: imageId,
     Body: file.buffer,
-    ContentType: file.mimetype,
+    ContentType: contentType,
   };
 
   const command = new PutObjectCommand(params);
